@@ -1,4 +1,4 @@
-package com.csv.csvproject.inventory.config;
+package com.csv.csvproject.configuration.dbconfig;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,28 +21,29 @@ import java.util.Map;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        entityManagerFactoryRef = "secondEntityManagerFactoryBean",
-        basePackages = {"com.csv.csvproject.inventory.repository"},
-        transactionManagerRef = "secondTransactionManager"
+        entityManagerFactoryRef = "entityManagerFactoryBean",
+        basePackages = {"com.csv.csvproject.configuration.repository"},
+        transactionManagerRef = "transactionManager"
 )
-public class PostgresConfig {
+public class SqlConfig {
     @Autowired
     private Environment environment;
 
-    @Bean(name="secondDataSource")
+    @Bean
     @Primary
-    public DataSource dataSource(){
+    public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setUrl(environment.getProperty("second.datasource.url"));
-        // dataSource.setDriverClassName(environment.getProperty("second.datasource.driver-class-name"));
-        dataSource.setUsername(environment.getProperty("second.datasource.username"));
-        dataSource.setPassword(environment.getProperty("second.datasource.password"));
+        dataSource.setUrl(environment.getProperty("spring.datasource.url"));
+        // dataSource.setDriverClassName(environment.getProperty("spring.datasource.driver-class-name"));
+        dataSource.setUsername(environment.getProperty("spring.datasource.username"));
+        dataSource.setPassword(environment.getProperty("spring.datasource.password"));
+
         return dataSource;
     }
 
-    @Bean(name = "secondEntityManagerFactoryBean")
+    @Bean(name = "entityManagerFactoryBean")
     @Primary
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(){
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean() {
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
         bean.setDataSource(dataSource());
 
@@ -50,19 +51,20 @@ public class PostgresConfig {
         bean.setJpaVendorAdapter(adaptor);
 
         Map<String, String> props = new HashMap<>();
-        props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
         props.put("hibernate.show_sql", "true");
         props.put("hibernate.hbm2ddl.auto", "update");
         bean.setJpaPropertyMap(props);
-        bean.setPackagesToScan("com.csv.csvproject.inventory.model");
+        bean.setPackagesToScan("com.csv.csvproject.configuration.model");
         return bean;
     }
 
-    @Primary
-    @Bean(name = "secondTransactionManager")
-    public PlatformTransactionManager transactionManager(){
+   @Primary
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager transactionManager() {
         JpaTransactionManager manager = new JpaTransactionManager();
         manager.setEntityManagerFactory(entityManagerFactoryBean().getObject());
         return manager;
     }
+
 }
